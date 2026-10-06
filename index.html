@@ -190,11 +190,10 @@
        does nothing - which looks exactly like a broken page. -->
   <div class="bl-fallback" id="blFallback" hidden>
     <div><b>Open the demo from its server, not from the file.</b></div>
-    <a class="bl-fallback-btn" id="blFallbackOpen" href="http://127.0.0.1:8791/" target="_self">Open the live demo &rarr;</a>
+    <a class="bl-fallback-btn" id="blFallbackOpen" href="https://mr3dartist.github.io/tesinng-liveafmp/" target="_self">Open the live demo &rarr;</a>
     <div class="sub">You opened this file directly (<code>file://</code>), and browsers refuse to load a
-      demo's modules and clips that way. If the button above does not work, double-click
-      <code>START DEMO.cmd</code> in the <code>afmp_web_demo</code> folder first — it starts the
-      server and opens the browser for you.</div>
+      demo's modules and clips that way. The button above goes to the live demo, which works on any
+      device — no server, no install.</div>
     <div class="sub" id="blFallbackState"></div>
   </div>
 </div>
@@ -223,9 +222,9 @@
       // so probe the server with one and say plainly whether it is up
       var st = document.getElementById('blFallbackState');
       var im = new Image();
-      im.onload = function () { st.textContent = 'The demo server is running - the button above will work.'; };
-      im.onerror = function () { st.textContent = 'The demo server is not running yet. Double-click START DEMO.cmd in the afmp_web_demo folder, then click the button above.'; };
-      im.src = 'http://127.0.0.1:8791/ping.png?t=' + Date.now();
+      im.onload = function () { st.textContent = 'The live demo is online - the button above will open it.'; };
+      im.onerror = function () { st.textContent = 'You appear to be offline - the button above needs a connection.'; };
+      im.src = 'https://mr3dartist.github.io/tesinng-liveafmp/ping.png?t=' + Date.now();
     }
   }, 3000);
 
