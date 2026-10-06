@@ -1,0 +1,171 @@
+/* the demo page stands alone - no browser default margins or white edges */
+html, body { margin:0; padding:0; background:#1d1d1d; }
+body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
+
+/* Blender 5.2 chrome + the Auto Face MoCap Pro N-panel, rebuilt in CSS.
+   Colours sampled from a real 5.2 screenshot of the add-on (see _probe/sample_colors.py):
+   top bar #1d1d1d, editor #303030, widget #545454, highlight #4772b3, listbox #252525.
+   The whole frame is a fixed 1280x720 design that JS scales to the container width, so
+   the UI stays pixel-faithful instead of reflowing. */
+
+.bl-wrap { position:relative; width:100%; overflow:hidden; background:#1d1d1d;
+           border-radius:10px; --bl-scale:1;
+           /* a CSS height so the frame can never collapse to nothing if the
+              scripts do not run (e.g. the page opened as a local file) */
+           aspect-ratio: 16 / 9; min-height:300px; }
+.bl-frame {
+  width:1280px; height:720px; transform-origin:top left; transform:scale(var(--bl-scale));
+  background:#303030; color:#e5e5e5; position:absolute; top:0; left:0;
+  font-family:"Inter","Segoe UI",system-ui,sans-serif; font-size:11px; line-height:1.25;
+  -webkit-font-smoothing:antialiased; user-select:none;
+}
+.bl-frame *,{box-sizing:border-box}
+.bl-frame :is(div,span,button,input){box-sizing:border-box}
+
+/* ---------------- top bar ---------------- */
+.bl-top { height:26px; background:#1d1d1d; display:flex; align-items:center; gap:2px; padding:0 6px; }
+.bl-logo { width:16px; height:16px; margin-right:6px; opacity:.9 }
+.bl-menu { padding:3px 6px; color:#ddd; border-radius:4px }
+.bl-menu:hover { background:#333 }
+.bl-tabs { display:flex; gap:1px; margin-left:16px; flex:1 }
+.bl-tab { padding:3px 9px; color:#bdbdbd; border-radius:4px; font-size:11px }
+.bl-tab.on { background:#2b2b2b; color:#fff; box-shadow:inset 0 0 0 1px #3b3b3b }
+.bl-topright { display:flex; align-items:center; gap:10px; color:#cfcfcf }
+.bl-topright .bl-scene { display:flex; align-items:center; gap:4px; background:#2b2b2b; border-radius:4px; padding:2px 8px }
+.bl-icobtn { width:18px; height:16px; display:inline-flex; align-items:center; justify-content:center; color:#cfcfcf }
+
+/* ---------------- body: viewport | outliner | properties ---------------- */
+.bl-body { display:grid; grid-template-columns:876px 168px 1fr; height:568px; }
+.bl-3d { position:relative; background:#3b3b3b; overflow:hidden; height:568px }
+.bl-3d-head { height:24px; background:#272727; display:flex; align-items:center; gap:8px; padding:0 6px;
+              font-size:11px; color:#ccc }
+.bl-3d-head .sep { width:1px; height:14px; background:#3d3d3d }
+.bl-mode { background:#545454; border-radius:4px; padding:2px 8px; color:#f0f0f0 }
+.bl-tool { width:18px; height:16px; display:inline-flex; align-items:center; justify-content:center; color:#bbb }
+.bl-canvas-wrap { position:absolute; inset:24px 0 0 0; }
+#blCanvas { display:block; width:100%; height:100% }
+.bl-toolcol { position:absolute; left:4px; top:32px; width:26px; background:#2b2b2b; border-radius:4px;
+              padding:3px 0; display:flex; flex-direction:column; align-items:center; gap:3px }
+.bl-toolcol i { width:20px; height:20px; display:flex; align-items:center; justify-content:center;
+                color:#c8c8c8; border-radius:4px }
+.bl-toolcol i.on { background:#4772b3; color:#fff }
+.bl-axis { position:absolute; right:300px; top:52px; width:56px; height:56px; opacity:.95 }
+.bl-navcol { position:absolute; right:28px; top:110px; display:flex; flex-direction:column; gap:2px }
+.bl-navcol i { width:20px; height:20px; display:flex; align-items:center; justify-content:center;
+               color:#c8c8c8; background:#2b2b2b; border-radius:3px }
+
+/* ---------------- the N-panel (sidebar) ---------------- */
+.bl-npanel { position:absolute; top:24px; right:22px; bottom:0; width:262px; background:#303030;
+             border-left:1px solid #232323; overflow:hidden; display:flex; flex-direction:column }
+.bl-np-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; padding:6px 6px 10px; scrollbar-width:thin }
+.bl-np-scroll::-webkit-scrollbar { width:8px }
+.bl-np-scroll::-webkit-scrollbar-thumb { background:#545454; border-radius:4px }
+.bl-np-scroll::-webkit-scrollbar-track { background:#2b2b2b }
+.bl-tabstrip { position:absolute; top:24px; right:0; bottom:0; width:22px; background:#303030;
+               display:flex; flex-direction:column; align-items:center; padding-top:6px; gap:4px }
+.bl-tabstrip i { width:16px; height:16px; display:flex; align-items:center; justify-content:center; color:#9a9a9a }
+.bl-tabstrip i.on { color:#fff }
+
+/* --- widgets --- */
+.bl-row { height:22px; display:flex; align-items:center; border-radius:4px; margin-bottom:3px;
+          background:#545454; color:#e8e8e8; padding:0 6px; position:relative; overflow:hidden }
+.bl-row .lbl { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; z-index:1 }
+.bl-row .val { z-index:1; color:#f0f0f0; font-variant-numeric:tabular-nums; padding-right:2px }
+.bl-row .rst { width:16px; height:16px; margin-left:4px; display:flex; align-items:center;
+               justify-content:center; color:#c9c9c9; z-index:1 }
+.bl-row.on { background:#4772b3 }
+.bl-fill { position:absolute; left:0; top:0; bottom:0; background:#4772b3; }
+.bl-row.on .bl-fill { background:rgba(255,255,255,.14) }
+.bl-row.flat { background:#3d3d3d }
+.bl-hdr { height:24px; display:flex; align-items:center; gap:6px; border-radius:4px; margin:8px 0 5px;
+          background:#545454; padding:0 7px; color:#f2f2f2; font-weight:600 }
+.bl-hdr.sub { background:#4a4a4a; font-weight:500 }
+.bl-hdr .rst { margin-left:auto; color:#c9c9c9 }
+.bl-sec { height:22px; display:flex; align-items:center; gap:6px; margin:9px 0 4px; color:#e0e0e0; font-weight:600 }
+.bl-sec .dot { width:14px; height:14px; border:1.4px solid #c8c8c8; border-radius:3px;
+               display:flex; align-items:center; justify-content:center; font-size:8px; color:#c8c8c8 }
+.bl-btn { height:22px; display:flex; align-items:center; justify-content:center; gap:6px;
+          background:#545454; border-radius:4px; margin-bottom:4px; color:#eee }
+.bl-btn:hover { background:#656565 }
+.bl-btn.primary { background:#4772b3 }
+.bl-btn.primary:hover { background:#5382c6 }
+.bl-btn.ghost { background:#3d3d3d; color:#bbb }
+.bl-btn[disabled] { opacity:.45 }
+.bl-chips { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:5px }
+.bl-chip { flex:1 1 auto; height:20px; display:flex; align-items:center; justify-content:center;
+           background:#545454; border-radius:4px; padding:0 7px; color:#e8e8e8; white-space:nowrap }
+.bl-chip:hover { background:#656565 }
+.bl-chip.on { background:#4772b3; color:#fff }
+.bl-list { background:#252525; border-radius:4px; padding:2px; margin-bottom:5px }
+.bl-item { height:22px; display:flex; align-items:center; gap:6px; border-radius:3px; padding:0 6px; color:#e3e3e3 }
+.bl-item.on { background:#4772b3; color:#fff }
+.bl-item .nm { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.bl-item .fr { color:#dcdcdc; font-variant-numeric:tabular-nums }
+.bl-item .tick { width:12px; height:12px; border-radius:2px; background:#5b5b5b; display:flex;
+                 align-items:center; justify-content:center; font-size:9px; color:#fff }
+.bl-item.on .tick { background:#e8e8e8; color:#2b2b2b }
+.bl-empty { color:#8d8d8d; padding:5px 3px }
+.bl-prog { height:14px; background:#252525; border-radius:3px; overflow:hidden; margin:4px 0; position:relative }
+.bl-prog i { display:block; height:100%; background:#4772b3; width:0; transition:width .2s }
+.bl-prog span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px }
+.bl-note { color:#9a9a9a; font-size:10px; padding:0 2px 4px }
+
+/* ---------------- outliner / properties ---------------- */
+.bl-pane { background:#2d2d2d; border-left:1px solid #232323; display:flex; flex-direction:column; overflow:hidden }
+.bl-pane-head { height:24px; display:flex; align-items:center; gap:6px; padding:0 8px; background:#272727; color:#ccc }
+.bl-chain { padding:6px 8px; color:#cfcfcf; font-size:11px }
+.bl-chain div { display:flex; align-items:center; gap:5px; height:18px }
+.bl-chain .tw { color:#8a8a8a; width:10px }
+.bl-shapekeys { padding:6px 8px; flex:1 1 auto; min-height:0; overflow-y:auto; scrollbar-width:thin }
+.bl-skrow { display:flex; align-items:center; gap:6px; height:18px; color:#dcdcdc }
+.bl-skrow.sel { background:#4772b3; border-radius:3px; color:#fff }
+.bl-skrow .v { margin-left:auto; font-variant-numeric:tabular-nums; color:#c9c9c9 }
+.bl-skrow.sel .v { color:#fff }
+
+/* ---------------- timeline + status ---------------- */
+.bl-timeline { height:74px; background:#2f2f2f; border-top:1px solid #232323; position:relative; padding-top:22px }
+.bl-tl-head { position:absolute; top:0; left:0; right:0; height:22px; display:flex; align-items:center;
+              gap:8px; padding:0 8px; color:#ccc; font-size:11px }
+.bl-tl-head .box { background:#545454; border-radius:3px; padding:1px 6px; color:#eee; display:flex; align-items:center; gap:4px }
+.bl-tl-track { position:relative; height:34px; margin:0 8px; background:#262626; border-radius:3px }
+.bl-tl-num { position:absolute; top:-16px; color:#9d9d9d; font-size:10px; transform:translateX(-50%) }
+.bl-tl-play { position:absolute; top:0; bottom:0; width:1px; background:#4772b3 }
+.bl-tl-play::before { content:""; position:absolute; top:-5px; left:-4px; border-left:4px solid transparent;
+                      border-right:4px solid transparent; border-top:6px solid #4772b3 }
+.bl-status { height:20px; background:#181818; display:flex; align-items:center; gap:14px; padding:0 8px;
+             color:#a8a8a8; font-size:10.5px }
+.bl-status .right { margin-left:auto; display:flex; gap:12px }
+
+/* the demo's own controls live in a small strip under the app so they never
+   pretend to be part of Blender */
+.bl-under { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 2px 2px;
+            color:#a9a9a9; font-size:12px }
+.bl-under .k { color:#7d7d7d }
+.bl-toggle { background:#2b2b2b; border:1px solid #3d3d3d; color:#ddd; border-radius:6px;
+             padding:4px 10px; font-size:12px; cursor:pointer }
+.bl-toggle.on { background:#4772b3; border-color:#4772b3; color:#fff }
+.bl-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:8px;
+              background:rgba(20,20,20,.75); color:#cfcfcf; font-size:12px; z-index:5 }
+.bl-loading[hidden] { display:none }
+.bl-loading i { width:14px; height:14px; border:2px solid #8a8a8a; border-top-color:#4772b3;
+                border-radius:50%; animation:blspin .8s linear infinite }
+@keyframes blspin { to { transform:rotate(360deg) } }
+@media(prefers-reduced-motion:reduce){ .bl-loading i{animation-duration:2.4s} }
+
+.bl-sec[data-fold] { cursor:pointer }
+.bl-sec .caret { margin-left:auto; color:#b9b9b9; font-size:10px }
+.bl-sec[data-fold]:hover { color:#fff }
+.bl-fold[hidden] { display:none }
+
+/* shown only when the module never ran - a file:// page cannot load modules */
+.bl-fallback { position:absolute; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:10px; text-align:center; padding:24px; background:#1d1d1d;
+  color:#e5e5e5; font-family:Inter,system-ui,sans-serif; font-size:14px; line-height:1.6; }
+.bl-fallback code { background:#2f2f2f; border:1px solid #3d3d3d; border-radius:5px;
+  padding:2px 7px; font-size:13px; color:#7fd1ff; }
+.bl-fallback b { color:#fff }
+.bl-fallback .sub { color:#9a9a9a; font-size:12.5px; max-width:560px }
+
+.bl-fallback-btn { display:inline-block; background:#4772b3; color:#fff; text-decoration:none;
+  font-weight:600; font-size:15px; padding:11px 22px; border-radius:7px; }
+.bl-fallback-btn:hover { background:#5382c6 }
