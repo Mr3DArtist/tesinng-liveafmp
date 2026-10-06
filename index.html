@@ -221,6 +221,7 @@
     <span class="right"><span>Memory: 343.9 MiB</span><span>VRAM: 6.7/12.0 GiB</span><span>5.2.1</span></span>
   </div>
 
+  <div class="bl-spot" id="blSpot"></div>
   <div class="bl-loading" id="blLoading"><i></i><span>Loading…</span></div>
 
   <!-- Only visible when the module never ran. Browsers block ES modules and fetch()
@@ -239,6 +240,11 @@
 
 <!-- demo-only controls, deliberately OUTSIDE the Blender frame -->
 <div class="bl-under">
+  <span class="bl-steps">
+    <button class="bl-toggle" id="stPrev" title="Previous step">‹ Back</button>
+    <span class="bl-step-text" id="stText">—</span>
+    <button class="bl-toggle" id="stNext" title="Next step">Next ›</button>
+  </span>
   <button class="bl-toggle" id="clPlay">Play</button>
   <button class="bl-toggle" id="clSide">Side by Side</button>
   <span class="k" id="clTime">0.0s / 0.0s</span>

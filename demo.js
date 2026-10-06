@@ -328,12 +328,62 @@ async function play(on) {
   } else { clockVid.pause(); sideVid.pause(); }
 }
 
+
+/* ---------------------------------------------------------------- guided steps
+   A small walkthrough over the real controls: the ring blinks on the thing to press
+   next, and Back/Next move through it. Performing the action advances it too. */
+const STEPS = [
+  { sel: '#blChars',              text: 'Pick a character' },
+  { sel: '#blClips',              text: 'Pick a clip to mocap' },
+  { sel: '#blAnalyze',            text: 'Press <b>Analyze Video</b> — it tracks the 52 blendshapes' },
+  { sel: '#blApply',              text: 'Press <b>Apply Mocap</b> — the character starts performing' },
+  { sel: '.bl-sect[data-fold=\"tuning\"]', text: 'Open <b>3. FACIAL TUNING</b>' },
+  { sel: '#blSliders .bl-row',    text: 'Drag a slider — the face changes as you slide' },
+  { sel: '#blSideBySide',         text: 'Press <b>Side by Side View</b> to compare with the clip' },
+];
+let stepIndex = -1;
+
+function placeSpot() {
+  const step = STEPS[stepIndex];
+  const spot = document.getElementById('blSpot');
+  if (!step) { spot.style.display = 'none'; return; }
+  const el = document.querySelector(step.sel);
+  if (!el) { spot.style.display = 'none'; return; }
+  const frame = document.getElementById('blFrame').getBoundingClientRect();
+  const r = el.getBoundingClientRect();
+  const k = frame.width / 1280;                    // the frame is scaled to fit
+  spot.style.display = 'block';
+  spot.style.left = ((r.left - frame.left) / k - 5) + 'px';
+  spot.style.top = ((r.top - frame.top) / k - 5) + 'px';
+  spot.style.width = (r.width / k + 10) + 'px';
+  spot.style.height = (r.height / k + 10) + 'px';
+}
+
+function showStep(i, scroll) {
+  stepIndex = Math.max(0, Math.min(STEPS.length - 1, i));
+  const step = STEPS[stepIndex];
+  const t = document.getElementById('stText');
+  if (t) t.innerHTML = 'Step <b>' + (stepIndex + 1) + '</b> of ' + STEPS.length + ' — ' + step.text;
+  if (scroll !== false) {
+    const el = document.querySelector(step.sel);
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+  }
+  placeSpot();
+}
+
 /* ------------------------------------------------------------------- start */
 function wire() {
   $('blAnalyze').onclick = analyze;
   $('blApply').onclick = applyMocap;
   $('blDefaults').onclick = () => { state.sliders = defaultSliders(); buildSliders(); deriveCurves(); };
   $('clPlay').onclick = () => play(!state.playing);
+  $('stPrev').onclick = () => showStep(stepIndex - 1);
+  $('stNext').onclick = () => showStep(stepIndex + 1);
+  // pressing the highlighted control also moves the walkthrough on
+  STEPS.forEach((step, i) => {
+    const el = document.querySelector(step.sel);
+    if (el) el.addEventListener('click', () => { if (stepIndex === i) showStep(i + 1); });
+  });
   $('blSideBySide').onclick = () => toggleSide();
   $('clSide').onclick = () => toggleSide();
   $('blFollow').onclick = () => {
@@ -353,9 +403,9 @@ function wire() {
   };
   $('blVidDrop').onclick = () => vidFold($('blVidBody').hidden);
   vidFold(true);
-  // 3. FACIAL TUNING opens collapsed, the way a fresh Blender panel would sit - it keeps
-  // 4. ANIMATION (and Apply Mocap) on screen without scrolling
-  fold(false);
+  // 3. FACIAL TUNING starts OPEN, so the panel scrolls exactly like Blender's does;
+  // the walkthrough scrolls each target into view as it goes
+  fold(true);
   // these mirror the add-on's own buttons; in the demo they acknowledge a click
   ['blRegister', 'blStartFrame', 'blConnect', 'blLive', 'blImportVid'].forEach(id => {
     const el = $(id);
@@ -387,6 +437,9 @@ window.__afmpBooted = true;
   $('blFollow').classList.add('on');
   loadClip(state.clip);
   await loadCharacter(state.character);
+  showStep(0);
+  window.addEventListener('resize', placeSpot);
+  setInterval(placeSpot, 600);            // the panel scrolls; keep the ring on target
   tick();
 })();
 

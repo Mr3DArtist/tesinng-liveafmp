@@ -196,3 +196,16 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 .bl-btn, .bl-hdr { height:21px; margin-bottom:3px }
 .bl-npanel { width:252px }
 .bl-note { font-size:10.5px; line-height:1.3 }
+
+/* ---- the guided step highlight: a rounded square that blinks on the control
+        the visitor should press next ---- */
+.bl-spot { position:absolute; display:none; pointer-events:none; z-index:30;
+  border:2px solid #0096ff; border-radius:9px;
+  box-shadow:0 0 0 3px rgba(0,150,255,.22), 0 0 20px rgba(0,150,255,.55);
+  transition:left .18s ease, top .18s ease, width .18s ease, height .18s ease;
+  animation:blink 1.15s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.18} }
+@media (prefers-reduced-motion:reduce){ .bl-spot{animation:none} }
+.bl-steps { display:flex; align-items:center; gap:8px; margin-right:4px }
+.bl-step-text { color:#cfcfcf; font-size:12px; min-width:270px }
+.bl-step-text b { color:#7fd1ff; font-weight:600 }
