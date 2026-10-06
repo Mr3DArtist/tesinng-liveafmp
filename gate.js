@@ -62,10 +62,14 @@
         await api.setCharacter(c);
         await wait(150);
         const rep = api.report();
-        const minT = Math.min(...rep.meshes.map(m => m.targets));
-        const keys = rep.meshes.map(m => m.keys);
-        check('character:' + c, rep.meshes.length > 0 && minT >= 50 && Math.min(...keys) >= 50,
-              rep.meshes.length + ' prims, targets ' + minT + '..' + Math.max(...rep.meshes.map(m => m.targets)));
+        // a character may ship in two pieces: the face carries the 52 morph targets and
+        // the body/hair is static, so require the FACE to be complete, not every prim
+        const face = rep.meshes.filter(m => m.targets >= 50);
+        const maxT = Math.max(...rep.meshes.map(m => m.targets));
+        check('character:' + c,
+              rep.meshes.length > 0 && face.length > 0 && maxT === 52 &&
+              face.every(m => m.keys === m.targets),
+              rep.meshes.length + ' prims, ' + face.length + ' with morphs (max ' + maxT + ' keys)');
       } catch (e) { check('character:' + c, false, e.message || e); }
     }
 

@@ -97,6 +97,17 @@ async function loadCharacter(id) {
     loadMorphs('data/morphs_' + id + '.bin'),
   ]);
   const report = bindMorphs(gltf.scene, THREE, pack);
+  // Some characters ship in two pieces: their face carries the 52 morph targets and
+  // their body/hair is a separate static mesh (Kun's face mesh crashes Blender on
+  // export). The optional _body file is loaded and added alongside when it exists.
+  try {
+    const bodyRes = await fetch('data/ship_' + id + '_body.glb', { method: 'HEAD' });
+    if (bodyRes.ok) {
+      const bodyGltf = await new Promise((res, rej) =>
+        loader.load('data/ship_' + id + '_body.glb', res, undefined, rej));
+      gltf.scene.add(bodyGltf.scene);
+    }
+  } catch (e) { /* no body piece for this character */ }
   if (current) { scene.remove(current); disposeTree(current); }
   current = gltf.scene;
   current.userData.morphReport = report;
