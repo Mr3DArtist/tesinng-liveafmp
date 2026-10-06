@@ -2,12 +2,18 @@
 html, body { margin:0; padding:0; background:#1d1d1d; }
 body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 
-/* Blender 5.2 chrome + the Auto Face MoCap Pro N-panel, rebuilt in CSS.
-   Colours sampled from a real 5.2 screenshot of the add-on (see _probe/sample_colors.py):
-   top bar #1d1d1d, editor #303030, widget #545454, highlight #4772b3, listbox #252525.
-   The whole frame is a fixed 1280x720 design that JS scales to the container width, so
-   the UI stays pixel-faithful instead of reflowing. */
+/* Blender 5.2 chrome + the Auto Face MoCap Pro N-panel.
+   ⛔ The chrome is NOT drawn in CSS: it is a real screenshot of Blender 5.2 with the
+   add-on running (blender_frame.png, 1920x1080 - a frame from the add-on's own screen
+   recording). Only three regions are live over it: the 3D viewport, the add-on's
+   sidebar, and the Shape Keys list. Drawing the top bar, headers, tool column,
+   timeline and status bar by hand never matched Blender closely enough; a screenshot
+   matches by construction.
 
+   The frame is a fixed 1280x720 design that JS scales to the container width, so the
+   overlay geometry below is in 1280x720 pixels and never reflows. Colours sampled
+   from the screenshot itself: viewport #3e3e3e, region/panel #2d2d2d, widget #525252,
+   listbox #252525, highlight #4772b3. */
 .bl-wrap { position:relative; width:100%; overflow:hidden; background:#1d1d1d;
            border-radius:10px; --bl-scale:1;
            /* a CSS height so the frame can never collapse to nothing if the
@@ -15,137 +21,147 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
            aspect-ratio: 16 / 9; min-height:300px; }
 .bl-frame {
   width:1280px; height:720px; transform-origin:top left; transform:scale(var(--bl-scale));
-  background:#303030; color:#e5e5e5; position:absolute; top:0; left:0;
+  color:#e5e5e5; position:absolute; top:0; left:0;
   font-family:"Inter","Segoe UI",system-ui,sans-serif; font-size:11px; line-height:1.25;
   -webkit-font-smoothing:antialiased; user-select:none;
+  /* ⛔ the backdrop is a 1920x1080 file inside a 1280x720 frame: `background-size`
+     must SCALE it to the frame (100% 100%). Written as `1920px 1080px` it is drawn
+     at 1:1 and simply cropped - the chrome then reads 1.5x too large and every
+     overlay lands in the wrong place. */
+  background:#2d2d2d url(blender_frame.png) 0 0 / 100% 100% no-repeat;
 }
 .bl-frame *,{box-sizing:border-box}
 .bl-frame :is(div,span,button,input){box-sizing:border-box}
 
-/* ---------------- top bar ---------------- */
-.bl-top { height:26px; background:#1d1d1d; display:flex; align-items:center; gap:2px; padding:0 6px; }
-.bl-logo { width:16px; height:16px; margin-right:6px; opacity:.9 }
-.bl-menu { padding:3px 6px; color:#ddd; border-radius:4px }
-.bl-menu:hover { background:#333 }
-.bl-tabs { display:flex; gap:1px; margin-left:16px; flex:1 }
-.bl-tab { padding:3px 9px; color:#bdbdbd; border-radius:4px; font-size:11px }
-.bl-tab.on { background:#2b2b2b; color:#fff; box-shadow:inset 0 0 0 1px #3b3b3b }
-.bl-topright { display:flex; align-items:center; gap:10px; color:#cfcfcf }
-.bl-topright .bl-scene { display:flex; align-items:center; gap:4px; background:#2b2b2b; border-radius:4px; padding:2px 8px }
-.bl-icobtn { width:18px; height:16px; display:inline-flex; align-items:center; justify-content:center; color:#cfcfcf }
-
-/* ---------------- body: viewport | outliner | properties ---------------- */
-.bl-body { display:grid; grid-template-columns:876px 168px 1fr; height:568px; }
-.bl-3d { position:relative; background:#3b3b3b; overflow:hidden; height:568px }
-.bl-3d-head { height:24px; background:#272727; display:flex; align-items:center; gap:8px; padding:0 6px;
-              font-size:11px; color:#ccc }
-.bl-3d-head .sep { width:1px; height:14px; background:#3d3d3d }
-.bl-mode { background:#545454; border-radius:4px; padding:2px 8px; color:#f0f0f0 }
-.bl-tool { width:18px; height:16px; display:inline-flex; align-items:center; justify-content:center; color:#bbb }
-.bl-canvas-wrap { position:absolute; inset:24px 0 0 0; }
+/* ---------------- the live regions, to the pixel ----------------
+   Measured on the screenshot at 1920x1080, halved into this 1280x720 space:
+     viewport top .............. y 46      viewport bottom .......... y 610
+     viewport left (tool column) x 40       N-panel .................. x 795..996
+     sidebar tab strip ......... x 996..1027   Properties editor ....... x 1062..1280
+   The canvas stops at the sidebar tab strip (996) so the screenshot's own tabs stay
+   visible; the canvas background is the screenshot's viewport grey (#3e3e3e), so the
+   seam between them is invisible. */
+.bl-canvas-wrap { position:absolute; left:40px; top:46px; width:987px; height:564px;
+                  overflow:hidden; background:#3e3e3e }
 #blCanvas { display:block; width:100%; height:100% }
-.bl-toolcol { position:absolute; left:4px; top:32px; width:26px; background:#2b2b2b; border-radius:4px;
-              padding:3px 0; display:flex; flex-direction:column; align-items:center; gap:3px }
-.bl-toolcol i { width:20px; height:20px; display:flex; align-items:center; justify-content:center;
-                color:#c8c8c8; border-radius:4px }
-.bl-toolcol i.on { background:#4772b3; color:#fff }
-.bl-axis { position:absolute; right:300px; top:52px; width:56px; height:56px; opacity:.95 }
-.bl-navcol { position:absolute; right:28px; top:110px; display:flex; flex-direction:column; gap:2px }
-.bl-navcol i { width:20px; height:20px; display:flex; align-items:center; justify-content:center;
-               color:#c8c8c8; background:#2b2b2b; border-radius:3px }
+/* ⛔ In Blender the sidebar, its tab strip and the floating "Options" button are all
+   drawn ON TOP of the viewport, and the character's hair reaches the viewport's very
+   top edge (measured: first hair row y=48, header bottom y=46). So the canvas has to
+   cover the full viewport width - and the chrome it then swallows is put back by
+   re-drawing that exact slice of the same backdrop over it. Sits under the panel,
+   over the canvas. */
+.bl-patch { position:absolute; left:960px; top:40px; width:67px; height:570px; z-index:1;
+            pointer-events:none;
+            background:url(blender_frame.png) -960px -40px / 1280px 720px no-repeat }
+/* ⛔ the patch carries z-index:1, which paints it over ANY z-index:auto sibling no
+   matter where it sits in the DOM - so the panel and the keys list must out-rank it
+   explicitly, or the screenshot's own panel shows through over theirs. */
 
 /* ---------------- the N-panel (sidebar) ---------------- */
-.bl-npanel { position:absolute; top:24px; right:22px; bottom:0; width:262px; background:#303030;
-             border-left:1px solid #232323; overflow:hidden; display:flex; flex-direction:column }
-.bl-np-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; padding:6px 6px 10px; scrollbar-width:thin }
+/* 201px is Blender's real sidebar width at this scale - the add-on's own labels
+   truncate with an ellipsis there too (visible in the screenshot). */
+.bl-npanel { position:absolute; left:795px; top:57px; width:201px; height:553px; z-index:2;
+             background:#2d2d2d; overflow:hidden; display:flex; flex-direction:column }
+.bl-np-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; padding:9px 6px 10px; scrollbar-width:thin }
 .bl-np-scroll::-webkit-scrollbar { width:8px }
-.bl-np-scroll::-webkit-scrollbar-thumb { background:#545454; border-radius:4px }
-.bl-np-scroll::-webkit-scrollbar-track { background:#2b2b2b }
-.bl-tabstrip { position:absolute; top:24px; right:0; bottom:0; width:22px; background:#303030;
-               display:flex; flex-direction:column; align-items:center; padding-top:6px; gap:4px }
-.bl-tabstrip i { width:16px; height:16px; display:flex; align-items:center; justify-content:center; color:#9a9a9a }
-.bl-tabstrip i.on { color:#fff }
+.bl-np-scroll::-webkit-scrollbar-thumb { background:#525252; border-radius:4px }
+.bl-np-scroll::-webkit-scrollbar-track { background:#2d2d2d }
+/* the real sidebar tab strip belongs to the screenshot - hide our stand-in */
+.bl-tabstrip { display:none }
+
+/* ---------------- the Shape Keys list (Properties editor) ---------------- */
+.bl-keys { position:absolute; left:1062px; top:146px; width:218px; height:510px; z-index:2;
+           background:#2d2d2d; display:flex; flex-direction:column; overflow:hidden }
+.bl-keys-head { height:18px; display:flex; align-items:center; gap:5px; padding:0 6px 0 4px;
+                color:#e2e2e2; font-weight:600; flex:0 0 auto }
+.bl-keys-head .tw { margin-left:auto; color:#b9b9b9; font-weight:400; font-size:9px }
+.bl-shapekeys { flex:1 1 auto; min-height:0; overflow-y:auto; padding:2px 0 6px;
+                scrollbar-width:thin; background:#252525 }
+.bl-shapekeys::-webkit-scrollbar { width:8px }
+.bl-shapekeys::-webkit-scrollbar-thumb { background:#525252; border-radius:4px }
+.bl-skrow { display:flex; align-items:center; gap:5px; height:16px; padding:0 6px 0 14px;
+            color:#dcdcdc }
+.bl-skrow .nm { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.bl-skrow .v { font-variant-numeric:tabular-nums; color:#c9c9c9; min-width:38px; text-align:right }
+.bl-skrow .bx { width:11px; height:11px; border-radius:2px; background:#4772b3; color:#fff;
+                font-size:8px; line-height:11px; text-align:center; flex:0 0 auto }
+.bl-skrow.sel { background:#4772b3; color:#fff }
+.bl-skrow.sel .v { color:#fff }
 
 /* --- widgets --- */
-.bl-row { height:22px; display:flex; align-items:center; border-radius:4px; margin-bottom:3px;
-          background:#545454; color:#e8e8e8; padding:0 6px; position:relative; overflow:hidden }
+.bl-row { height:20px; display:flex; align-items:center; border-radius:4px; margin-bottom:2px;
+          background:#525252; color:#e8e8e8; padding:0 6px; position:relative; overflow:hidden }
 .bl-row .lbl { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; z-index:1 }
 .bl-row .val { z-index:1; color:#f0f0f0; font-variant-numeric:tabular-nums; padding-right:2px }
-.bl-row .rst { width:16px; height:16px; margin-left:4px; display:flex; align-items:center;
-               justify-content:center; color:#c9c9c9; z-index:1 }
+.bl-row .rst { width:14px; height:14px; margin-left:3px; display:flex; align-items:center;
+               justify-content:center; color:#c9c9c9; z-index:1; font-size:10px }
 .bl-row.on { background:#4772b3 }
 .bl-fill { position:absolute; left:0; top:0; bottom:0; background:#4772b3; }
 .bl-row.on .bl-fill { background:rgba(255,255,255,.14) }
-.bl-row.flat { background:#3d3d3d }
-.bl-hdr { height:21px; display:flex; align-items:center; gap:6px; border-radius:4px; margin:5px 0 4px;
-          background:#545454; padding:0 7px; color:#f2f2f2; font-weight:600 }
-.bl-hdr.sub { background:#4a4a4a; font-weight:500 }
+.bl-row.flat { background:#3a3a3a }
+.bl-hdr { height:20px; display:flex; align-items:center; gap:5px; border-radius:4px; margin:4px 0 3px;
+          background:#525252; padding:0 6px; color:#f2f2f2; font-weight:600 }
+.bl-hdr.sub { background:#484848; font-weight:500 }
 .bl-hdr .rst { margin-left:auto; color:#c9c9c9 }
-.bl-sec { height:22px; display:flex; align-items:center; gap:6px; margin:9px 0 4px; color:#e0e0e0; font-weight:600 }
-.bl-sec .dot { width:14px; height:14px; border:1.4px solid #c8c8c8; border-radius:3px;
-               display:flex; align-items:center; justify-content:center; font-size:8px; color:#c8c8c8 }
-.bl-btn { height:22px; display:flex; align-items:center; justify-content:center; gap:6px;
-          background:#545454; border-radius:4px; margin-bottom:4px; color:#eee }
-.bl-btn:hover { background:#656565 }
+.bl-btn { height:20px; display:flex; align-items:center; justify-content:center; gap:6px;
+          background:#525252; border-radius:4px; margin-bottom:3px; color:#eee;
+          cursor:pointer; text-align:center; padding:0 4px }
+.bl-btn > span, .bl-btn { white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+.bl-btn:hover { background:#636363 }
 .bl-btn.primary { background:#4772b3 }
 .bl-btn.primary:hover { background:#5382c6 }
-.bl-btn.ghost { background:#3d3d3d; color:#bbb }
+.bl-btn.ghost { background:#3a3a3a; color:#bbb }
 .bl-btn[disabled] { opacity:.45 }
-.bl-chips { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:5px }
-.bl-chip { flex:0 1 auto; height:20px; display:flex; align-items:center; justify-content:center;
-           background:#545454; border-radius:4px; padding:0 7px; color:#e8e8e8; white-space:nowrap }
-.bl-chip:hover { background:#656565 }
+.bl-chips { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:4px }
+.bl-chip { flex:0 1 auto; height:19px; display:flex; align-items:center; justify-content:center;
+           background:#525252; border-radius:4px; padding:0 6px; color:#e8e8e8;
+           white-space:nowrap; cursor:pointer }
+.bl-chip:hover { background:#636363 }
 .bl-chip.on { background:#4772b3; color:#fff }
-.bl-list { background:#252525; border-radius:4px; padding:2px; margin-bottom:5px }
-.bl-item { height:22px; display:flex; align-items:center; gap:6px; border-radius:3px; padding:0 6px; color:#e3e3e3 }
+.bl-list { background:#252525; border-radius:4px; padding:2px; margin-bottom:4px }
+.bl-item { height:20px; display:flex; align-items:center; gap:5px; border-radius:3px; padding:0 5px;
+           color:#e3e3e3; cursor:pointer }
 .bl-item.on { background:#4772b3; color:#fff }
 .bl-item .nm { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
-.bl-item .fr { color:#dcdcdc; font-variant-numeric:tabular-nums }
-.bl-item .tick { width:12px; height:12px; border-radius:2px; background:#5b5b5b; display:flex;
-                 align-items:center; justify-content:center; font-size:9px; color:#fff }
+.bl-item .fr { color:#dcdcdc; font-variant-numeric:tabular-nums; font-size:10px }
+.bl-item .tick { width:11px; height:11px; border-radius:2px; background:#5b5b5b; display:flex;
+                 align-items:center; justify-content:center; font-size:8px; color:#fff }
 .bl-item.on .tick { background:#e8e8e8; color:#2b2b2b }
-.bl-empty { color:#8d8d8d; padding:5px 3px }
-.bl-prog { height:14px; background:#252525; border-radius:3px; overflow:hidden; margin:4px 0; position:relative }
+.bl-empty { color:#8d8d8d; padding:5px 3px; white-space:normal }
+.bl-prog { height:14px; background:#252525; border-radius:3px; overflow:hidden; margin:3px 0; position:relative }
 .bl-prog i { display:block; height:100%; background:#4772b3; width:0; transition:width .2s }
 .bl-prog span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px }
-.bl-note { color:#9a9a9a; font-size:10px; padding:0 2px 4px }
+.bl-note { color:#9a9a9a; font-size:10px; line-height:1.3; padding:0 2px 4px }
 
-/* ---------------- outliner / properties ---------------- */
-.bl-pane { background:#2d2d2d; border-left:1px solid #232323; display:flex; flex-direction:column; overflow:hidden }
-.bl-pane-head { height:24px; display:flex; align-items:center; gap:6px; padding:0 8px; background:#272727; color:#ccc }
-.bl-chain { padding:6px 8px; color:#cfcfcf; font-size:11px }
-.bl-chain div { display:flex; align-items:center; gap:5px; height:18px }
-.bl-chain .tw { color:#8a8a8a; width:10px }
-.bl-shapekeys { padding:6px 8px; flex:1 1 auto; min-height:0; overflow-y:auto; scrollbar-width:thin }
-.bl-skrow { display:flex; align-items:center; gap:6px; height:18px; color:#dcdcdc }
-.bl-skrow.sel { background:#4772b3; border-radius:3px; color:#fff }
-.bl-skrow .v { margin-left:auto; font-variant-numeric:tabular-nums; color:#c9c9c9 }
-.bl-skrow.sel .v { color:#fff }
+/* ---- widgets added to mirror the add-on's panel (see __init__.py) ---- */
+.bl-drop { height:20px; display:flex; align-items:center; gap:5px; background:#525252;
+  border-radius:4px; padding:0 6px; margin:0 0 3px; color:#f2f2f2; font-weight:600; cursor:pointer }
+.bl-drop .lbl { flex:1; display:flex; align-items:center; gap:5px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis }
+.bl-drop .lbl svg { flex:0 0 auto }
+.bl-drop .tw { color:#d6d6d6; font-size:9px }
+.bl-sect { height:20px; display:flex; align-items:center; gap:5px; margin:7px 0 3px;
+  color:#e6e6e6; font-weight:700; letter-spacing:.02em }
+.bl-sect svg { flex:0 0 auto }
+.bl-sect .caret { margin-left:auto; color:#c9c9c9; font-size:9px; font-weight:400 }
+.bl-sect[data-fold] { cursor:pointer }
+.bl-sect[data-fold]:hover { color:#fff }
+.bl-btnrow { display:flex; gap:3px; margin:0 0 4px }
+.bl-mini { flex:1 1 0; height:19px; display:flex; align-items:center; justify-content:center;
+  background:#525252; border-radius:4px; color:#eaeaea; font-size:11px; cursor:pointer }
+.bl-mini:hover { background:#636363 }
 
-/* ---------------- timeline + status ---------------- */
-.bl-timeline { height:74px; background:#2f2f2f; border-top:1px solid #232323; position:relative; padding-top:22px }
-.bl-tl-head { position:absolute; top:0; left:0; right:0; height:22px; display:flex; align-items:center;
-              gap:8px; padding:0 8px; color:#ccc; font-size:11px }
-.bl-tl-head .box { background:#545454; border-radius:3px; padding:1px 6px; color:#eee; display:flex; align-items:center; gap:4px }
-.bl-tl-track { position:relative; height:34px; margin:0 8px; background:#262626; border-radius:3px }
-.bl-tl-num { position:absolute; top:-16px; color:#9d9d9d; font-size:10px; transform:translateX(-50%) }
-.bl-tl-play { position:absolute; top:0; bottom:0; width:1px; background:#4772b3 }
-.bl-tl-play::before { content:""; position:absolute; top:-5px; left:-4px; border-left:4px solid transparent;
-                      border-right:4px solid transparent; border-top:6px solid #4772b3 }
-.bl-status { height:20px; background:#181818; display:flex; align-items:center; gap:14px; padding:0 8px;
-             color:#a8a8a8; font-size:10.5px }
-.bl-status .right { margin-left:auto; display:flex; gap:12px }
-
-/* the demo's own controls live in a small strip under the app so they never
-   pretend to be part of Blender */
+/* ---------------- the demo's own controls ---------------- */
+/* they live in a strip under the app so they never pretend to be part of Blender */
 .bl-under { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 2px 2px;
             color:#a9a9a9; font-size:12px }
 .bl-under .k { color:#7d7d7d }
 .bl-toggle { background:#2b2b2b; border:1px solid #3d3d3d; color:#ddd; border-radius:6px;
              padding:4px 10px; font-size:12px; cursor:pointer }
 .bl-toggle.on { background:#4772b3; border-color:#4772b3; color:#fff }
-.bl-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:8px;
-              background:rgba(20,20,20,.75); color:#cfcfcf; font-size:12px; z-index:5 }
+.bl-loading { position:absolute; left:40px; top:46px; width:987px; height:564px;
+              display:flex; align-items:center; justify-content:center; gap:8px;
+              background:rgba(30,30,30,.82); color:#cfcfcf; font-size:12px; z-index:5 }
 /* ⛔ An element whose own rule sets display (flex/block) IGNORES the hidden
    attribute - [hidden] only carries the UA's `display:none`, which a class rule
    beats. The fallback panel covered the whole demo on every load for exactly this
@@ -156,8 +172,7 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 @keyframes blspin { to { transform:rotate(360deg) } }
 @media(prefers-reduced-motion:reduce){ .bl-loading i{animation-duration:2.4s} }
 
-.bl-sec[data-fold] { cursor:pointer }
-.bl-sec .caret { margin-left:auto; color:#b9b9b9; font-size:10px }
+.bl-sect[data-fold] { cursor:pointer }
 .bl-sec[data-fold]:hover { color:#fff }
 .bl-fold[hidden] { display:none }
 
@@ -174,28 +189,16 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
   font-weight:600; font-size:15px; padding:11px 22px; border-radius:7px; }
 .bl-fallback-btn:hover { background:#5382c6 }
 
-/* ---- widgets added to mirror the add-on's panel (see __init__.py) ---- */
-.bl-drop { height:22px; display:flex; align-items:center; gap:6px; background:#545454;
-  border-radius:4px; padding:0 7px; margin:0 0 4px; color:#f2f2f2; font-weight:600 }
-.bl-drop .lbl { flex:1; display:flex; align-items:center; gap:6px; white-space:nowrap;
-  overflow:hidden; text-overflow:ellipsis }
-.bl-drop .tw { color:#d6d6d6; font-size:10px }
-.bl-sect { height:22px; display:flex; align-items:center; gap:6px; margin:6px 0 4px;
-  color:#e6e6e6; font-weight:700; letter-spacing:.02em }
-.bl-sect .caret { margin-left:auto; color:#c9c9c9; font-size:10px; font-weight:400 }
-.bl-sect[data-fold] { cursor:pointer }
-.bl-sect[data-fold]:hover { color:#fff }
-.bl-btnrow { display:flex; gap:3px; margin:0 0 5px }
-.bl-mini { flex:1 1 0; height:20px; display:flex; align-items:center; justify-content:center;
-  background:#545454; border-radius:4px; color:#eaeaea; font-size:12px; cursor:pointer }
-.bl-mini:hover { background:#656565 }
-.bl-sec-lbl { color:#9d9d9d; font-size:10.5px; margin:4px 0 3px }
-/* Blender's own metrics: 11px text, ~21px rows */
-.bl-frame { font-size:11px }
-.bl-row { height:21px; margin-bottom:2px }
-.bl-btn, .bl-hdr { height:21px; margin-bottom:3px }
-.bl-npanel { width:252px }
-.bl-note { font-size:10.5px; line-height:1.3 }
+/* ---- the live playhead, drawn over the timeline that is already in the screenshot:
+        a 1px blue line with Blender's own frame chip riding on top of it ---- */
+.bl-playhead { position:absolute; left:288px; top:610px; width:0; height:92px; z-index:4;
+               pointer-events:none }
+.bl-playhead::before { content:""; position:absolute; left:-1px; top:16px; bottom:0; width:2px;
+                       background:#4772b3 }
+.bl-playhead span { position:absolute; left:0; top:0; transform:translateX(-50%);
+                    background:#2b2b2b; color:#f0f0f0; font-size:10.5px; line-height:15px;
+                    height:16px; min-width:26px; text-align:center; border-radius:3px;
+                    font-variant-numeric:tabular-nums; padding:0 4px }
 
 /* ---- the guided step highlight: a rounded square that blinks on the control
         the visitor should press next ---- */
@@ -209,13 +212,16 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 .bl-steps { display:flex; align-items:center; gap:8px; margin-right:4px }
 .bl-step-text { color:#cfcfcf; font-size:12px; min-width:270px }
 .bl-step-text b { color:#7fd1ff; font-weight:600 }
-/* Side by Side, the way the add-on does it: the source clip takes the left half of the
-   viewport and the character keeps the right half. object-fit:contain - the source is
-   never cropped. */
-.bl-3d.side-on .bl-canvas-wrap{ left:50% }
-.bl-side{position:absolute;top:24px;bottom:0;left:0;width:50%;background:#000;overflow:hidden;
-  z-index:3;border-right:1px solid #1a1a1a}
-.bl-side video{width:100%;height:100%;object-fit:contain;display:block}
-.bl-side .bl-side-tag{position:absolute;top:6px;left:8px;font-size:10px;color:#dcdcdc;
-  background:rgba(0,0,0,.55);border:1px solid #3d3d3d;border-radius:999px;padding:1px 8px}
-.bl-side[hidden]{display:none !important}
+
+/* Side by Side, the way the add-on does it: the source clip takes the LEFT half of
+   the viewport and the character keeps the right half. object-fit:contain - the
+   source is never cropped. Both halves stay inside the live canvas region. */
+/* Side by Side splits the VISIBLE strip in half; demo.js moves the camera's principal
+   point into the right half rather than resizing the canvas, so both halves stay
+   anchored to the viewport. */
+.bl-side { position:absolute; left:40px; top:46px; width:378px; height:564px;
+  background:#000; overflow:hidden; z-index:3 }
+.bl-side video { width:100%; height:100%; object-fit:contain; display:block }
+.bl-side .bl-side-tag { position:absolute; top:6px; left:8px; font-size:10px; color:#dcdcdc;
+  background:rgba(0,0,0,.55); border:1px solid #3d3d3d; border-radius:999px; padding:1px 8px }
+.bl-side[hidden] { display:none !important }

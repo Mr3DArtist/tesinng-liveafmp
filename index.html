@@ -3,85 +3,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Auto Face MoCap Pro — live demo</title>
+<!-- an empty icon stops the browser asking for /favicon.ico on every load -->
+<link rel="icon" href="data:,">
 <link rel="stylesheet" href="blender.css">
 </head><body>
 
 <div class="bl-wrap" id="blWrap">
 <div class="bl-frame" id="blFrame">
 
-  <!-- ============ top bar ============ -->
-  <div class="bl-top">
-    <svg class="bl-logo" viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M15 3.4c3.2-2.1 8-1.4 10.4 1.6 2 2.5 2 5.4.9 8 1.6 1.2 2.6 3 2.6 5.2 0 4.6-3.9 8.2-8.8 8.2-1.5 0-2.6.9-3.4 2.2-.5.9-1.3 1.5-2.3 1.5-1.3 0-2.2-.9-2.3-2.2-2.5 1.3-5.7 1.2-8.1-.6C1.6 25.4.4 22.4.6 19.2c.1-2.1 1.1-4 2.6-5.3-.6-2.9.3-6 2.6-8C8 3.7 11.4 3 15 3.4z" fill="#e87d0d"/>
-      <circle cx="16" cy="15" r="5" fill="#fff"/>
-    </svg>
-    <span class="bl-menu">File</span><span class="bl-menu">Edit</span><span class="bl-menu">Render</span>
-    <span class="bl-menu">Window</span><span class="bl-menu">Help</span>
-    <div class="bl-tabs">
-      <span class="bl-tab">Layout</span><span class="bl-tab on">Modeling</span><span class="bl-tab">Sculpting</span>
-      <span class="bl-tab">UV Editing</span><span class="bl-tab">Texture Paint</span><span class="bl-tab">Shading</span>
-      <span class="bl-tab">Animation</span><span class="bl-tab">Rendering</span><span class="bl-tab">Compositing</span>
-      <span class="bl-tab">Geometry Nodes</span><span class="bl-tab">Scripting</span>
+  <!-- The chrome is a REAL Blender 5.2 screenshot (a frame from the add-on's own
+       screen recording), so every pixel of it - the top bar, the workspace tabs, the
+       tool column, the sidebar tab strip, the timeline and the status bar - is the
+       genuine article rather than a drawing of one. Only the three regions that must
+       be live are laid over it. -->
+  <div class="bl-canvas-wrap" id="blCanvasWrap"><canvas id="blCanvas"></canvas></div>
+  <div class="bl-patch" aria-hidden="true"></div>
+
+  <aside class="bl-keys" id="blKeys" aria-label="Shape Keys">
+    <div class="bl-keys-head">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="#ccc"><path d="M4 2h8v12H4z"/><path d="M6 5h4M6 8h4" stroke="#2d2d2d" stroke-width="1"/></svg>
+      <span>Shape Keys</span>
+      <span class="tw">▼</span>
     </div>
-    <div class="bl-topright">
-      <span class="bl-scene">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="#cfcfcf"><path d="M8 1.6 14 5v6l-6 3.4L2 11V5z"/></svg>
-        Scene
-      </span>
-      <span class="bl-icobtn" title="View Layer">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="#cfcfcf"><path d="M8 3C4.5 3 1.7 5.6.5 8c1.2 2.4 4 5 7.5 5s6.3-2.6 7.5-5C14.3 5.6 11.5 3 8 3zm0 8.2A3.2 3.2 0 1 1 8 4.8a3.2 3.2 0 0 1 0 6.4z"/></svg>
-      </span>
-      <span class="bl-icobtn" title="Render">
-        <svg width="13" height="13" viewBox="0 0 16 16" fill="#cfcfcf"><path d="M2 5h3l1-1.6h4L11 5h3v8H2z"/></svg>
-      </span>
-    </div>
-  </div>
-
-  <!-- ============ body ============ -->
-  <div class="bl-body">
-
-    <!-- ---- 3D viewport ---- -->
-    <div class="bl-3d">
-      <div class="bl-3d-head">
-        <span class="bl-tool"><svg width="13" height="13" viewBox="0 0 16 16" fill="#bbb"><path d="M8 1 3 8h3v6h4V8h3z"/></svg></span>
-        <span class="bl-mode">Object Mode ▾</span>
-        <span class="sep"></span>
-        <span class="bl-menu">View</span><span class="bl-menu">Select</span><span class="bl-menu">Add</span><span class="bl-menu">Object</span>
-        <span class="sep"></span>
-        <span class="bl-tool">Global ▾</span>
-        <span class="bl-tool">◧</span><span class="bl-tool">⌖</span>
-        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-          <span class="bl-tool">⊞</span><span class="bl-tool">⊟</span><span class="bl-tool">◫</span><span class="bl-tool">◨</span>
-        </div>
-      </div>
-
-      <div class="bl-canvas-wrap"><canvas id="blCanvas"></canvas></div>
-
-      <div class="bl-toolcol">
-        <i class="on" title="Select Box"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><path d="M2 2h5v2H4v3H2z"/></svg></i>
-        <i title="Cursor"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M3 2l9 7-4 .6 2.3 4-1.8 1-2.3-4L4 13z"/></svg></i>
-        <i title="Move"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M8 1l2 2.4H8.8v3.4h3.4V5.6L14.6 8l-2.4 2.4V9.2H8.8v3.4h1.2L8 15l-2.4-2.4h1.2V9.2H3.4v1.2L1 8l2.4-2.4v1.2h3.4V3.4H5.6z"/></svg></i>
-        <i title="Rotate"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.6"><path d="M13 8a5 5 0 1 1-2-4"/><path d="M13.6 2.4v4.2h-4.2z" fill="#c8c8c8"/></svg></i>
-        <i title="Scale"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M2 9h2.6l3.4 3.4V15L2 9zm12-2h-2.6L8 3.6V1z"/><rect x="6.2" y="6.2" width="3.6" height="3.6"/></svg></i>
-        <i title="Annotate"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.5"><path d="M2 13c3-1 5-6 8-6s4 2 4 4"/></svg></i>
-      </div>
-
-      <svg class="bl-axis" viewBox="0 0 56 56" aria-hidden="true">
-        <circle cx="28" cy="28" r="6" fill="none" stroke="#6b6b6b" stroke-width="1"/>
-        <line x1="28" y1="28" x2="28" y2="8" stroke="#4b8fd6" stroke-width="2"/>
-        <circle cx="28" cy="7" r="4.5" fill="#2f6fb0"/><text x="28" y="10" font-size="6" fill="#fff" text-anchor="middle">Z</text>
-        <line x1="28" y1="28" x2="47" y2="34" stroke="#7fb84b" stroke-width="2"/>
-        <circle cx="48" cy="35" r="4.5" fill="#4e8a2e"/><text x="48" y="38" font-size="6" fill="#fff" text-anchor="middle">Y</text>
-        <line x1="28" y1="28" x2="12" y2="36" stroke="#c65b5b" stroke-width="2"/>
-        <circle cx="11" cy="37" r="4.5" fill="#a83c3c"/><text x="11" y="40" font-size="6" fill="#fff" text-anchor="middle">X</text>
-      </svg>
-
-      <div class="bl-navcol">
-        <i title="Zoom"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.5"><circle cx="7" cy="7" r="4.4"/><path d="M10.2 10.2 14 14"/></svg></i>
-        <i title="Orbit"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/></svg></i>
-        <i title="Pan"><svg width="12" height="12" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M8 1.6l1.8 2.2H9v3.4h3.4V6L14.4 8l-2 2.2V9H9v3.4h.8L8 14.4l-1.8-2H7V9H3.6v1.2L1.6 8l2-2.2V7H7V3.8H6.2z"/></svg></i>
-        <i title="Camera"><svg width="12" height="12" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M2 5h3l1-1.5h4L11 5h3v8H2z"/></svg></i>
-      </div>
+    <div class="bl-shapekeys" id="blShapeKeys"></div>
+  </aside>
 
       <!-- ---- the add-on's side panel — sections, order and widgets match
              auto_face_mocap_pro/__init__.py (FACEMOCAP_PT_panel.draw) ---- -->
@@ -172,54 +117,11 @@
           <i title="Item"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#9a9a9a" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="1"/></svg></i>
         </div>
       </aside>
-    </div>
 
-    <!-- ---- outliner ---- -->
-    <div class="bl-pane">
-      <div class="bl-pane-head">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="#ccc"><rect x="1" y="2" width="5" height="4"/><rect x="10" y="8" width="5" height="4"/></svg>
-        <span>Scene Collection</span>
-      </div>
-      <div class="bl-chain">
-        <div><span class="tw">▾</span>Scene Collection</div>
-        <div style="padding-left:10px"><span class="tw">▾</span>⌂ <span id="blObjName">Character</span></div>
-        <div style="padding-left:20px"><span class="tw">▾</span>⬡ Mesh</div>
-        <div style="padding-left:20px"><span class="tw">▾</span>⌗ Armature</div>
-        <div style="padding-left:30px"><span class="tw">▸</span>⚙ Pose</div>
-      </div>
-    </div>
-
-    <!-- ---- shape keys ---- -->
-    <div class="bl-pane">
-      <div class="bl-pane-head">
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="#ccc"><path d="M4 2h8v12H4z"/><path d="M6 5h4M6 8h4" stroke="#2d2d2d" stroke-width="1"/></svg>
-        <span>Shape Keys</span>
-        <span style="margin-left:auto">▾</span>
-      </div>
-      <div class="bl-shapekeys" id="blShapeKeys"></div>
-    </div>
-  </div>
-
-  <!-- ============ timeline ============ -->
-  <div class="bl-timeline">
-    <div class="bl-tl-head">
-      <span class="box">▾ View</span><span class="box">Marker ▾</span>
-      <span style="margin-left:8px">⏮ ◀◀ ▶ ▶▶ ⏭</span>
-      <span style="margin-left:auto;display:flex;gap:6px">
-        <span class="box"><span id="blFrameNo">0</span></span>
-        <span class="box">Start <b>0</b></span>
-        <span class="box">End <b id="blEnd">243</b></span>
-      </span>
-    </div>
-    <div class="bl-tl-track" id="blTrack">
-      <div class="bl-tl-play" id="blPlayhead" style="left:0"></div>
-    </div>
-  </div>
-
-  <div class="bl-status">
-    <span>⌘ Select</span><span>⟳ Rotate View</span><span>⚙ Options</span>
-    <span class="right"><span>Memory: 343.9 MiB</span><span>VRAM: 6.7/12.0 GiB</span><span>5.2.1</span></span>
-  </div>
+  <!-- The playhead rides the timeline that is already in the screenshot. The scale
+       below (frame 0 at x=288, 48 frames to 60px) was measured off that timeline's own
+       tick labels, so the live marker lands exactly on Blender's static one. -->
+  <div class="bl-playhead" id="blPlayhead"><span id="blFrameNo">0</span></div>
 
   <div class="bl-spot" id="blSpot"></div>
   <div class="bl-loading" id="blLoading"><i></i><span>Loading…</span></div>

@@ -2,13 +2,18 @@ import * as THREE from './lib/three.module.js';
 import { GLTFLoader } from './lib/loaders/GLTFLoader.js';
 import { loadMorphs, bindMorphs } from './morphs.js';
 import { makeDeriver, defaultSliders } from './engine.js';
+import { studioScene } from './studio.js';
 
 /* ------------------------------------------------------------------ config */
 const CHARACTERS = [
   { id: 'snow', label: 'Snow' },
   { id: 'rain', label: 'Rain' },
   { id: 'jay',  label: 'jay'  },
-  { id: 'kun',  label: 'Kun'  },
+  // Kun ships in two pieces: his face carries the 52 morph targets and his body/hair
+  // is a separate static mesh (Blender crashes exporting his face mesh together with
+  // it). `body` saves a HEAD probe for every other character, which only ever logged
+  // a 404 to the console.
+  { id: 'kun',  label: 'Kun', body: 'data/ship_kun_body.glb' },
   { id: 'chan', label: 'Chan' },
 ];
 const CLIPS = [
@@ -54,18 +59,43 @@ const canvas = $('blCanvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 const scene = new THREE.Scene();
-scene.add(new THREE.HemisphereLight(0xffffff, 0x2b3038, 2.35));
-const key = new THREE.DirectionalLight(0xffffff, 1.85); key.position.set(2.4, 3.2, 4.4); scene.add(key);
-const rim = new THREE.DirectionalLight(0x9cc7ff, 0.75); rim.position.set(-3, 1.6, -2.4); scene.add(rim);
+/* Blender's rendered viewport composites over the theme's 3D-view colour; the demo's
+   canvas sits inside a real Blender screenshot, so the two must be the same grey or
+   the canvas edge shows as a rectangle. (Sampled from blender_frame.png: #3e3e3e.) */
+scene.background = new THREE.Color(0x3e3e3e);
+// A studio environment replaces the old hemisphere fill: directional ambient + a
+// specular sheen is what separates a rendered look from a flat one. The two
+// directional lights stay, but only for shape - most of the brightness is now
+// environment, so they are far weaker than they were.
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+scene.environment = pmrem.fromScene(studioScene(THREE), 0.035).texture;
+if ('environmentIntensity' in scene) scene.environmentIntensity = 0.95;
+const key = new THREE.DirectionalLight(0xffffff, 0.55); key.position.set(2.4, 3.2, 4.4); scene.add(key);
+const rim = new THREE.DirectionalLight(0x9cc7ff, 0.35); rim.position.set(-3, 1.6, -2.4); scene.add(rim);
 const camera = new THREE.PerspectiveCamera(28, 1, 0.001, 200);
 let current = null;
 const loader = new GLTFLoader();
 
+/* The canvas spans the whole 3D area, but the sidebar lies over its right 232px - so
+   framing the character in the canvas rectangle puts the face behind the panel. It has
+   to be framed in the part of the viewport the visitor can actually SEE.
+   `setViewOffset` moves the projection's principal point, which is exactly that: the
+   canvas stays full width (no seam at the sidebar's edge) while the subject sits in the
+   middle of the visible strip. Values are frame pixels and must match blender.css. */
+const CANVAS_W = 987, CANVAS_H = 564, COVERED_W = 232;
+function visibleStrip() {
+  const full = CANVAS_W - COVERED_W;                 // 755px of viewport on screen
+  return state.sideBySide ? { left: full / 2, width: full / 2 } : { left: 0, width: full };
+}
 function resize() {
   const r = canvas.parentElement.getBoundingClientRect();
   const w = Math.max(1, Math.round(r.width)), h = Math.max(1, Math.round(r.height));
   renderer.setSize(w, h, false);
-  camera.aspect = w / h; camera.updateProjectionMatrix();
+  camera.aspect = w / h;
+  const s = visibleStrip();
+  camera.setViewOffset(CANVAS_W, CANVAS_H, s.left + s.width / 2 - CANVAS_W / 2, 0, CANVAS_W, CANVAS_H);
+  camera.updateProjectionMatrix();
 }
 new ResizeObserver(resize).observe(canvas.parentElement);
 
@@ -97,17 +127,11 @@ async function loadCharacter(id) {
     loadMorphs('data/morphs_' + id + '.bin'),
   ]);
   const report = bindMorphs(gltf.scene, THREE, pack);
-  // Some characters ship in two pieces: their face carries the 52 morph targets and
-  // their body/hair is a separate static mesh (Kun's face mesh crashes Blender on
-  // export). The optional _body file is loaded and added alongside when it exists.
-  try {
-    const bodyRes = await fetch('data/ship_' + id + '_body.glb', { method: 'HEAD' });
-    if (bodyRes.ok) {
-      const bodyGltf = await new Promise((res, rej) =>
-        loader.load('data/ship_' + id + '_body.glb', res, undefined, rej));
-      gltf.scene.add(bodyGltf.scene);
-    }
-  } catch (e) { /* no body piece for this character */ }
+  const extra = (CHARACTERS.find(c => c.id === id) || {}).body;
+  if (extra) {
+    const bodyGltf = await new Promise((res, rej) => loader.load(extra, res, undefined, rej));
+    gltf.scene.add(bodyGltf.scene);
+  }
   if (current) { scene.remove(current); disposeTree(current); }
   current = gltf.scene;
   current.userData.morphReport = report;
@@ -115,7 +139,6 @@ async function loadCharacter(id) {
   scene.add(current);
   frameCharacter(current);
   buildShapeKeys(pack.names);
-  $('blObjName').textContent = CHARACTERS.find(c => c.id === id).label;
   $('blTuningChar').textContent = CHARACTERS.find(c => c.id === id).label;
   $('blLoading').hidden = true;
   applyCurves();
@@ -146,7 +169,7 @@ const sideTag = document.createElement('span');
 sideTag.className = 'bl-side-tag';
 sideTag.textContent = 'Source clip';
 sideWrap.appendChild(sideTag);
-document.querySelector('.bl-3d').appendChild(sideWrap);
+$('blFrame').appendChild(sideWrap);
 
 function loadClip(c) {
   for (const v of [clockVid, sideVid]) {
@@ -173,9 +196,13 @@ function applyCurvesAt(f) {
     }
   });
   paintShapeKeys(f);
-  const pct = state.nFrames > 1 ? (f / (state.nFrames - 1)) * 100 : 0;
-  $('blPlayhead').style.left = pct.toFixed(2) + '%';
-  $('blFrameNo').textContent = String(f);
+  // The playhead rides the screenshot's own timeline. Its frame->pixel scale was read
+  // off that timeline's tick labels (frame 0 sits at x=288, 48 frames span 60px), so a
+  // live playhead lands exactly where Blender's own would.
+  const ph = $('blPlayhead');
+  if (ph) ph.style.left = (288 + 1.196 * f).toFixed(1) + 'px';
+  const fn = $('blFrameNo');
+  if (fn) fn.textContent = String(f);
 }
 
 function tick() {
@@ -196,10 +223,15 @@ const DISPLAY_KEYS = ['jawOpen','mouthSmileLeft','mouthSmileRight','eyeBlinkLeft
                       'eyeSquintLeft','mouthFrownLeft','noseSneerLeft','tongueOut'];
 function buildShapeKeys(names) {
   const list = ['Basis', ...names.filter(n => n !== 'Basis')];
-  $('blShapeKeys').innerHTML = '<div class="bl-shapekeys-inner">' + list.map((n, i) =>
-    '<div class="bl-skrow' + (i === 0 ? ' sel' : '') + '"><span>' + n + '</span>' +
-    '<span class="v" data-sk="' + n + '">' + (i === 0 ? '1.000' : '0.000') + '</span></div>').join('') + '</div>';
-  $('blShapeKeys').style.overflowY = 'auto';
+  // styled to sit invisibly over the Shape Keys list already in the screenshot:
+  // key icon, name, value, then the mute/keyframe boxes Blender draws on the right
+  $('blShapeKeys').innerHTML = list.map((n, i) =>
+    '<div class="bl-skrow' + (i === 0 ? ' sel' : '') + '">' +
+    '<svg width="9" height="9" viewBox="0 0 16 16" fill="#c9c9c9" style="flex:0 0 auto;opacity:.8">' +
+    '<path d="M8 2 2.5 4.6v3.2C2.5 11 4.9 13.4 8 14.3c3.1-.9 5.5-3.3 5.5-6.5V4.6z"/></svg>' +
+    '<span class="nm">' + n + '</span>' +
+    '<span class="v" data-sk="' + n + '">' + (i === 0 ? '1.000' : '0.000') + '</span>' +
+    '<span class="bx">✓</span></div>').join('');
   skRows = [...$('blShapeKeys').querySelectorAll('[data-sk]')].map(el => [el.dataset.sk, el]);
 }
 function paintShapeKeys(f) {
@@ -301,7 +333,8 @@ async function loadTrace(url) {
   state.nFrames = e.raw.tracks.length;
   state.fps = e.raw.fps || 24;
   state.deriver = e.deriver;
-  $('blEnd').textContent = String(state.nFrames);
+  const end = $('blEnd');                       // the screenshot's own End field is static
+  if (end) end.textContent = String(state.nFrames);
   deriveCurves();
 }
 function deriveCurves() {
@@ -442,7 +475,7 @@ function toggleSide() {
   state.sideBySide = !state.sideBySide;
   sideWrap.hidden = !state.sideBySide;
   // split the viewport in half, like the add-on's Side by Side View
-  const stage = document.querySelector('.bl-3d');
+  const stage = $('blFrame');
   if (stage) stage.classList.toggle('side-on', state.sideBySide);
   resize();
   setTimeout(resize, 60);
