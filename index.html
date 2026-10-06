@@ -211,6 +211,14 @@
 <script type="importmap">{"imports":{"three":"./lib/three.module.js"}}</script>
 <script type="module" src="demo.js"></script>
 <script>
+  // Opened straight from disk (file://)? Browsers will not run a demo's modules
+  // or load its data from a local file, so send the visitor to the live demo
+  // instead of showing a dead frame with a button on it.
+  // (?local=1 keeps this file usable for local testing.)
+  if (location.protocol === 'file:' && !new URLSearchParams(location.search).has('local')) {
+    location.replace('https://mr3dartist.github.io/tesinng-liveafmp/');
+  }
+
   // if the module has not started a few seconds in, say why instead of showing a blank frame
   setTimeout(function () {
     if (!window.__afmpBooted) {
