@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auto Face MoCap Pro — live demo</title>
+<link rel="stylesheet" href="blender.css">
+</head><body>
+
+<div class="bl-wrap" id="blWrap">
+<div class="bl-frame" id="blFrame">
+
+  <!-- ============ top bar ============ -->
+  <div class="bl-top">
+    <svg class="bl-logo" viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M15 3.4c3.2-2.1 8-1.4 10.4 1.6 2 2.5 2 5.4.9 8 1.6 1.2 2.6 3 2.6 5.2 0 4.6-3.9 8.2-8.8 8.2-1.5 0-2.6.9-3.4 2.2-.5.9-1.3 1.5-2.3 1.5-1.3 0-2.2-.9-2.3-2.2-2.5 1.3-5.7 1.2-8.1-.6C1.6 25.4.4 22.4.6 19.2c.1-2.1 1.1-4 2.6-5.3-.6-2.9.3-6 2.6-8C8 3.7 11.4 3 15 3.4z" fill="#e87d0d"/>
+      <circle cx="16" cy="15" r="5" fill="#fff"/>
+    </svg>
+    <span class="bl-menu">File</span><span class="bl-menu">Edit</span><span class="bl-menu">Render</span>
+    <span class="bl-menu">Window</span><span class="bl-menu">Help</span>
+    <div class="bl-tabs">
+      <span class="bl-tab">Layout</span><span class="bl-tab on">Modeling</span><span class="bl-tab">Sculpting</span>
+      <span class="bl-tab">UV Editing</span><span class="bl-tab">Texture Paint</span><span class="bl-tab">Shading</span>
+      <span class="bl-tab">Animation</span><span class="bl-tab">Rendering</span><span class="bl-tab">Compositing</span>
+      <span class="bl-tab">Geometry Nodes</span><span class="bl-tab">Scripting</span>
+    </div>
+    <div class="bl-topright">
+      <span class="bl-scene">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="#cfcfcf"><path d="M8 1.6 14 5v6l-6 3.4L2 11V5z"/></svg>
+        Scene
+      </span>
+      <span class="bl-icobtn" title="View Layer">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="#cfcfcf"><path d="M8 3C4.5 3 1.7 5.6.5 8c1.2 2.4 4 5 7.5 5s6.3-2.6 7.5-5C14.3 5.6 11.5 3 8 3zm0 8.2A3.2 3.2 0 1 1 8 4.8a3.2 3.2 0 0 1 0 6.4z"/></svg>
+      </span>
+      <span class="bl-icobtn" title="Render">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="#cfcfcf"><path d="M2 5h3l1-1.6h4L11 5h3v8H2z"/></svg>
+      </span>
+    </div>
+  </div>
+
+  <!-- ============ body ============ -->
+  <div class="bl-body">
+
+    <!-- ---- 3D viewport ---- -->
+    <div class="bl-3d">
+      <div class="bl-3d-head">
+        <span class="bl-tool"><svg width="13" height="13" viewBox="0 0 16 16" fill="#bbb"><path d="M8 1 3 8h3v6h4V8h3z"/></svg></span>
+        <span class="bl-mode">Object Mode ▾</span>
+        <span class="sep"></span>
+        <span class="bl-menu">View</span><span class="bl-menu">Select</span><span class="bl-menu">Add</span><span class="bl-menu">Object</span>
+        <span class="sep"></span>
+        <span class="bl-tool">Global ▾</span>
+        <span class="bl-tool">◧</span><span class="bl-tool">⌖</span>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+          <span class="bl-tool">⊞</span><span class="bl-tool">⊟</span><span class="bl-tool">◫</span><span class="bl-tool">◨</span>
+        </div>
+      </div>
+
+      <div class="bl-canvas-wrap"><canvas id="blCanvas"></canvas></div>
+
+      <div class="bl-toolcol">
+        <i class="on" title="Select Box"><svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><path d="M2 2h5v2H4v3H2z"/></svg></i>
+        <i title="Cursor"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M3 2l9 7-4 .6 2.3 4-1.8 1-2.3-4L4 13z"/></svg></i>
+        <i title="Move"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M8 1l2 2.4H8.8v3.4h3.4V5.6L14.6 8l-2.4 2.4V9.2H8.8v3.4h1.2L8 15l-2.4-2.4h1.2V9.2H3.4v1.2L1 8l2.4-2.4v1.2h3.4V3.4H5.6z"/></svg></i>
+        <i title="Rotate"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.6"><path d="M13 8a5 5 0 1 1-2-4"/><path d="M13.6 2.4v4.2h-4.2z" fill="#c8c8c8"/></svg></i>
+        <i title="Scale"><svg width="14" height="14" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M2 9h2.6l3.4 3.4V15L2 9zm12-2h-2.6L8 3.6V1z"/><rect x="6.2" y="6.2" width="3.6" height="3.6"/></svg></i>
+        <i title="Annotate"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.5"><path d="M2 13c3-1 5-6 8-6s4 2 4 4"/></svg></i>
+      </div>
+
+      <svg class="bl-axis" viewBox="0 0 56 56" aria-hidden="true">
+        <circle cx="28" cy="28" r="6" fill="none" stroke="#6b6b6b" stroke-width="1"/>
+        <line x1="28" y1="28" x2="28" y2="8" stroke="#4b8fd6" stroke-width="2"/>
+        <circle cx="28" cy="7" r="4.5" fill="#2f6fb0"/><text x="28" y="10" font-size="6" fill="#fff" text-anchor="middle">Z</text>
+        <line x1="28" y1="28" x2="47" y2="34" stroke="#7fb84b" stroke-width="2"/>
+        <circle cx="48" cy="35" r="4.5" fill="#4e8a2e"/><text x="48" y="38" font-size="6" fill="#fff" text-anchor="middle">Y</text>
+        <line x1="28" y1="28" x2="12" y2="36" stroke="#c65b5b" stroke-width="2"/>
+        <circle cx="11" cy="37" r="4.5" fill="#a83c3c"/><text x="11" y="40" font-size="6" fill="#fff" text-anchor="middle">X</text>
+      </svg>
+
+      <div class="bl-navcol">
+        <i title="Zoom"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.5"><circle cx="7" cy="7" r="4.4"/><path d="M10.2 10.2 14 14"/></svg></i>
+        <i title="Orbit"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#c8c8c8" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M2 8h12"/></svg></i>
+        <i title="Pan"><svg width="12" height="12" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M8 1.6l1.8 2.2H9v3.4h3.4V6L14.4 8l-2 2.2V9H9v3.4h.8L8 14.4l-1.8-2H7V9H3.6v1.2L1.6 8l2-2.2V7H7V3.8H6.2z"/></svg></i>
+        <i title="Camera"><svg width="12" height="12" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M2 5h3l1-1.5h4L11 5h3v8H2z"/></svg></i>
+      </div>
+
+      <!-- ---- the add-on's side panel ---- -->
+      <aside class="bl-npanel" aria-label="Auto Face Mocap Pro">
+        <div class="bl-np-scroll" id="blPanel">
+
+          <div class="bl-hdr">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#f2f2f2" stroke-width="1.6"><circle cx="8" cy="8" r="6.2"/><path d="M5 8.2 7.4 10.6 11 5.8"/></svg>
+            <span style="flex:1;text-align:center;font-weight:500">Register Character</span>
+          </div>
+
+          <div class="bl-sec"><span class="dot">1</span><span>CHARACTER PRESET</span></div>
+          <div class="bl-chips" id="blChars"></div>
+
+          <div class="bl-sec"><span class="dot">2</span><span>VIDEO SOURCES</span></div>
+          <div class="bl-chips" id="blClips"></div>
+          <div class="bl-btn" id="blAnalyze">Analyze Video</div>
+          <div class="bl-prog" id="blProg" hidden><i></i><span></span></div>
+
+          <div class="bl-sec" data-fold="tuning"><span class="dot">3</span><span>FACIAL TUNING</span>
+            <span class="caret" id="blCaretTuning">▶</span></div>
+          <div class="bl-fold" id="blFoldTuning" hidden>
+            <div class="bl-hdr sub">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="#f2f2f2"><path d="M7 1h2l.4 1.9 1.3.6 1.7-1 1.4 1.4-1 1.7.6 1.3L15 7v2l-1.9.4-.6 1.3 1 1.7-1.4 1.4-1.7-1-1.3.6L9 15H7l-.4-1.9-1.3-.6-1.7 1-1.4-1.4 1-1.7-.6-1.3L1 9V7l1.9-.4.6-1.3-1-1.7 1.4-1.4 1.7 1 1.3-.6z"/></svg>
+              <span>Auto Face Mocap Tuning "<b id="blTuningChar">Snow</b>"</span>
+              <span class="rst" title="Reset">⟲</span>
+            </div>
+            <div id="blSliders"></div>
+            <div class="bl-btn ghost" id="blDefaults">Default Values</div>
+            <div class="bl-btn ghost" id="blAdjustExp">▶ Adjust Expressions (Experimental)</div>
+          </div>
+
+          <div class="bl-sec"><span class="dot">4</span><span>ANIMATION</span></div>
+          <div class="bl-row" id="blFollow"><span class="lbl">▶ Follow Playhead</span></div>
+          <div class="bl-btn primary" id="blApply">Apply Mocap</div>
+          <div class="bl-hdr sub">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="#f2f2f2"><rect x="1" y="3" width="14" height="10" rx="1"/><path d="M4 3v10M12 3v10" stroke="#4a4a4a" stroke-width="1.2"/></svg>
+            <span style="flex:1">Mocaps</span>
+            <span class="note" id="blMocapCount" style="font-weight:400;color:#e8e8e8">0 applied</span>
+          </div>
+          <div class="bl-list" id="blTray"><div class="bl-empty">No mocap applied yet.</div></div>
+          <div class="bl-btn ghost" id="blSideBySide">↔ Side by Side View</div>
+        </div>
+        <div class="bl-tabstrip" aria-hidden="true">
+          <i class="on" title="Auto Face Mocap Pro">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="#fff"><path d="M7 1h2l.4 1.9 1.3.6 1.7-1 1.4 1.4-1 1.7.6 1.3L15 7v2l-1.9.4-.6 1.3 1 1.7-1.4 1.4-1.7-1-1.3.6L9 15H7l-.4-1.9-1.3-.6-1.7 1-1.4-1.4 1-1.7-.6-1.3L1 9V7l1.9-.4.6-1.3-1-1.7 1.4-1.4 1.7 1 1.3-.6z"/></svg>
+          </i>
+          <i title="Tool"><svg width="13" height="13" viewBox="0 0 16 16" fill="#9a9a9a"><path d="M8 4.6A3.4 3.4 0 1 0 8 11.4 3.4 3.4 0 0 0 8 4.6z"/></svg></i>
+          <i title="View"><svg width="13" height="13" viewBox="0 0 16 16" fill="#9a9a9a"><path d="M2 8s2.4-4 6-4 6 4 6 4-2.4 4-6 4-6-4-6-4z"/></svg></i>
+          <i title="Animation"><svg width="13" height="13" viewBox="0 0 16 16" fill="#9a9a9a"><path d="M3 13c3-1 5-9 10-10v2c-3.6.9-5.3 7-10 10z"/></svg></i>
+          <i title="Item"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#9a9a9a" stroke-width="1.3"><rect x="2" y="2" width="12" height="12" rx="1"/></svg></i>
+        </div>
+      </aside>
+    </div>
+
+    <!-- ---- outliner ---- -->
+    <div class="bl-pane">
+      <div class="bl-pane-head">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="#ccc"><rect x="1" y="2" width="5" height="4"/><rect x="10" y="8" width="5" height="4"/></svg>
+        <span>Scene Collection</span>
+      </div>
+      <div class="bl-chain">
+        <div><span class="tw">▾</span>Scene Collection</div>
+        <div style="padding-left:10px"><span class="tw">▾</span>⌂ <span id="blObjName">Character</span></div>
+        <div style="padding-left:20px"><span class="tw">▾</span>⬡ Mesh</div>
+        <div style="padding-left:20px"><span class="tw">▾</span>⌗ Armature</div>
+        <div style="padding-left:30px"><span class="tw">▸</span>⚙ Pose</div>
+      </div>
+    </div>
+
+    <!-- ---- shape keys ---- -->
+    <div class="bl-pane">
+      <div class="bl-pane-head">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="#ccc"><path d="M4 2h8v12H4z"/><path d="M6 5h4M6 8h4" stroke="#2d2d2d" stroke-width="1"/></svg>
+        <span>Shape Keys</span>
+        <span style="margin-left:auto">▾</span>
+      </div>
+      <div class="bl-shapekeys" id="blShapeKeys"></div>
+    </div>
+  </div>
+
+  <!-- ============ timeline ============ -->
+  <div class="bl-timeline">
+    <div class="bl-tl-head">
+      <span class="box">▾ View</span><span class="box">Marker ▾</span>
+      <span style="margin-left:8px">⏮ ◀◀ ▶ ▶▶ ⏭</span>
+      <span style="margin-left:auto;display:flex;gap:6px">
+        <span class="box"><span id="blFrameNo">0</span></span>
+        <span class="box">Start <b>0</b></span>
+        <span class="box">End <b id="blEnd">243</b></span>
+      </span>
+    </div>
+    <div class="bl-tl-track" id="blTrack">
+      <div class="bl-tl-play" id="blPlayhead" style="left:0"></div>
+    </div>
+  </div>
+
+  <div class="bl-status">
+    <span>⌘ Select</span><span>⟳ Rotate View</span><span>⚙ Options</span>
+    <span class="right"><span>Memory: 343.9 MiB</span><span>VRAM: 6.7/12.0 GiB</span><span>5.2.1</span></span>
+  </div>
+
+  <div class="bl-loading" id="blLoading"><i></i><span>Loading…</span></div>
+
+  <!-- Only visible when the module never ran. Browsers block ES modules and fetch()
+       on a file:// page, so a double-clicked index.html loads the markup and then
+       does nothing - which looks exactly like a broken page. -->
+  <div class="bl-fallback" id="blFallback" hidden>
+    <div><b>Open the demo from its server, not from the file.</b></div>
+    <a class="bl-fallback-btn" id="blFallbackOpen" href="http://127.0.0.1:8791/" target="_self">Open the live demo &rarr;</a>
+    <div class="sub">You opened this file directly (<code>file://</code>), and browsers refuse to load a
+      demo's modules and clips that way. If the button above does not work, double-click
+      <code>START DEMO.cmd</code> in the <code>afmp_web_demo</code> folder first — it starts the
+      server and opens the browser for you.</div>
+    <div class="sub" id="blFallbackState"></div>
+  </div>
+</div>
+</div>
+
+<!-- demo-only controls, deliberately OUTSIDE the Blender frame -->
+<div class="bl-under">
+  <button class="bl-toggle" id="clPlay">Play</button>
+  <button class="bl-toggle" id="clSide">Side by Side</button>
+  <span class="k" id="clTime">0.0s / 0.0s</span>
+  <span class="k">·</span>
+  <span class="k">Pick a clip, press Analyze Video, then Apply Mocap — the sliders above are live.</span>
+</div>
+
+<script type="importmap">{"imports":{"three":"./lib/three.module.js"}}</script>
+<script type="module" src="demo.js"></script>
+<script>
+  // if the module has not started a few seconds in, say why instead of showing a blank frame
+  setTimeout(function () {
+    if (!window.__afmpBooted) {
+      var f = document.getElementById('blFallback');
+      if (f) f.hidden = false;
+      var l = document.getElementById('blLoading');
+      if (l) l.hidden = true;
+      // a file:// page cannot fetch cross-origin, but an IMAGE is not blocked by CORS,
+      // so probe the server with one and say plainly whether it is up
+      var st = document.getElementById('blFallbackState');
+      var im = new Image();
+      im.onload = function () { st.textContent = 'The demo server is running - the button above will work.'; };
+      im.onerror = function () { st.textContent = 'The demo server is not running yet. Double-click START DEMO.cmd in the afmp_web_demo folder, then click the button above.'; };
+      im.src = 'http://127.0.0.1:8791/ping.png?t=' + Date.now();
+    }
+  }, 3000);
+
+  if (new URLSearchParams(location.search).has('gate')) {
+    var s = document.createElement('script');
+    s.type = 'module'; s.src = 'gate.js';
+    s.async = false;   // dynamic module scripts default to async and would beat demo.js
+    document.head.appendChild(s);
+  }
+</script>
+</body></html>
