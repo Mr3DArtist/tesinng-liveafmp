@@ -146,7 +146,11 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 .bl-toggle.on { background:#4772b3; border-color:#4772b3; color:#fff }
 .bl-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:8px;
               background:rgba(20,20,20,.75); color:#cfcfcf; font-size:12px; z-index:5 }
-.bl-loading[hidden] { display:none }
+/* ⛔ An element whose own rule sets display (flex/block) IGNORES the hidden
+   attribute - [hidden] only carries the UA's `display:none`, which a class rule
+   beats. The fallback panel covered the whole demo on every load for exactly this
+   reason, and a check of the `hidden` PROPERTY still reported true. */
+.bl-loading[hidden], .bl-prog[hidden], .bl-side[hidden], .bl-fallback[hidden] { display:none }
 .bl-loading i { width:14px; height:14px; border:2px solid #8a8a8a; border-top-color:#4772b3;
                 border-radius:50%; animation:blspin .8s linear infinite }
 @keyframes blspin { to { transform:rotate(360deg) } }
