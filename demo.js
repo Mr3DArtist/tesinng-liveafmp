@@ -135,10 +135,18 @@ const clockVid = document.createElement('video');
 clockVid.muted = true; clockVid.playsInline = true; clockVid.loop = true; clockVid.preload = 'auto';
 const sideVid = document.createElement('video');
 sideVid.muted = true; sideVid.playsInline = true; sideVid.loop = true; sideVid.preload = 'auto';
-sideVid.className = 'bl-sidevid';
-sideVid.style.cssText = 'position:absolute;left:8px;top:34px;width:300px;border-radius:4px;z-index:3;box-shadow:0 6px 18px rgba(0,0,0,.5)';
-sideVid.hidden = true;
-canvas.parentElement.appendChild(sideVid);
+// the add-on's Side by Side View is a SPLIT, not a corner thumbnail: the source clip
+// takes the left half of the viewport, the character keeps the right half
+const sideWrap = document.createElement('div');
+sideWrap.className = 'bl-side';
+sideWrap.id = 'blSide';
+sideWrap.hidden = true;
+sideWrap.appendChild(sideVid);
+const sideTag = document.createElement('span');
+sideTag.className = 'bl-side-tag';
+sideTag.textContent = 'Source clip';
+sideWrap.appendChild(sideTag);
+document.querySelector('.bl-3d').appendChild(sideWrap);
 
 function loadClip(c) {
   for (const v of [clockVid, sideVid]) {
@@ -432,7 +440,12 @@ function wire() {
 }
 function toggleSide() {
   state.sideBySide = !state.sideBySide;
-  sideVid.hidden = !state.sideBySide;
+  sideWrap.hidden = !state.sideBySide;
+  // split the viewport in half, like the add-on's Side by Side View
+  const stage = document.querySelector('.bl-3d');
+  if (stage) stage.classList.toggle('side-on', state.sideBySide);
+  resize();
+  setTimeout(resize, 60);
   $('clSide').classList.toggle('on', state.sideBySide);
   $('blSideBySide').classList.toggle('on', state.sideBySide);
   if (state.sideBySide) {
