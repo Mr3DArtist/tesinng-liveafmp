@@ -83,26 +83,57 @@
         <i title="Camera"><svg width="12" height="12" viewBox="0 0 16 16" fill="#c8c8c8"><path d="M2 5h3l1-1.5h4L11 5h3v8H2z"/></svg></i>
       </div>
 
-      <!-- ---- the add-on's side panel ---- -->
+      <!-- ---- the add-on's side panel — sections, order and widgets match
+             auto_face_mocap_pro/__init__.py (FACEMOCAP_PT_panel.draw) ---- -->
       <aside class="bl-npanel" aria-label="Auto Face Mocap Pro">
         <div class="bl-np-scroll" id="blPanel">
 
-          <div class="bl-hdr">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#f2f2f2" stroke-width="1.6"><circle cx="8" cy="8" r="6.2"/><path d="M5 8.2 7.4 10.6 11 5.8"/></svg>
-            <span style="flex:1;text-align:center;font-weight:500">Register Character</span>
+          <!-- VIDEO SOURCES : one dropdown whose header names the section, with
+               Scan/Connect as its first row (the add-on's own arrangement) -->
+          <div class="bl-drop" id="blVidDrop">
+            <span class="lbl">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="#eaeaea"><rect x="1.2" y="4.6" width="9.4" height="7" rx="1.3"/><path d="M11.2 7.4 14.7 5.4v6.8l-3.5-2z"/><circle cx="3.9" cy="2.9" r="1.6"/></svg>
+              Video Sources
+            </span>
+            <span class="tw">▾</span>
+          </div>
+          <div class="bl-fold" id="blVidBody">
+            <div class="bl-row"><span class="lbl"> Connected:</span><span class="val" id="blConnected">USB Camera</span></div>
+            <div class="bl-btn" id="blConnect">Connect a USB Camera Device</div>
+            <div class="bl-btn" id="blLive">● Live Preview…</div>
+            <div class="bl-row flat"><span class="lbl">Resolution</span><span class="val">1280 × 720</span></div>
+            <div class="bl-btn" id="blImportVid">Import Videos</div>
+            <div class="bl-chips" id="blClips"></div>
+            <div class="bl-btn" id="blAnalyze">Analyze Video</div>
+            <div class="bl-prog" id="blProg" hidden><i></i><span></span></div>
+            <div class="bl-btn" id="blSideBySide">↔ Side by Side View</div>
           </div>
 
-          <div class="bl-sec"><span class="dot">1</span><span>CHARACTER PRESET</span></div>
+          <!-- 2. CHARACTER -->
+          <div class="bl-sect">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="#e2e2e2"><rect x="2.4" y="1.6" width="11.2" height="12.8" rx="1.4"/></svg>
+            <span>2. CHARACTER</span>
+          </div>
+          <div class="bl-row flat"><span class="lbl">Preset</span><span class="val" id="blPresetName">Snow</span><span class="rst">⟲</span></div>
           <div class="bl-chips" id="blChars"></div>
+          <div class="bl-btnrow">
+            <span class="bl-mini">＋</span><span class="bl-mini">－</span>
+            <span class="bl-mini" title="Focus">⌖</span>
+            <span class="bl-mini" title="New">🗋</span>
+          </div>
+          <div class="bl-btn" id="blRegister">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#fff" stroke-width="1.7"><circle cx="8" cy="8" r="6"/><path d="M5 8.2 7.3 10.5 11 5.9"/></svg>
+            Register Character
+          </div>
+          <p class="bl-note">Set the Character Type to enable registration</p>
 
-          <div class="bl-sec"><span class="dot">2</span><span>VIDEO SOURCES</span></div>
-          <div class="bl-chips" id="blClips"></div>
-          <div class="bl-btn" id="blAnalyze">Analyze Video</div>
-          <div class="bl-prog" id="blProg" hidden><i></i><span></span></div>
-
-          <div class="bl-sec" data-fold="tuning"><span class="dot">3</span><span>FACIAL TUNING</span>
-            <span class="caret" id="blCaretTuning">▶</span></div>
-          <div class="bl-fold" id="blFoldTuning" hidden>
+          <!-- 3. FACIAL TUNING -->
+          <div class="bl-sect" data-fold="tuning">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#e2e2e2" stroke-width="1.4"><path d="M2 12c2-5 4-7 6-7s4 3 6 3"/></svg>
+            <span>3. FACIAL TUNING</span>
+            <span class="caret" id="blCaretTuning">▼</span>
+          </div>
+          <div class="bl-fold" id="blFoldTuning">
             <div class="bl-hdr sub">
               <svg width="13" height="13" viewBox="0 0 16 16" fill="#f2f2f2"><path d="M7 1h2l.4 1.9 1.3.6 1.7-1 1.4 1.4-1 1.7.6 1.3L15 7v2l-1.9.4-.6 1.3 1 1.7-1.4 1.4-1.7-1-1.3.6L9 15H7l-.4-1.9-1.3-.6-1.7 1-1.4-1.4 1-1.7-.6-1.3L1 9V7l1.9-.4.6-1.3-1-1.7 1.4-1.4 1.7 1 1.3-.6z"/></svg>
               <span>Auto Face Mocap Tuning "<b id="blTuningChar">Snow</b>"</span>
@@ -110,19 +141,26 @@
             </div>
             <div id="blSliders"></div>
             <div class="bl-btn ghost" id="blDefaults">Default Values</div>
+            <div class="bl-row flat"><span class="lbl">Adjust All</span><span class="val">1.00</span><span class="rst">⟲</span></div>
+            <p class="bl-note">Some sliders are disabled bcz of the character Type</p>
             <div class="bl-btn ghost" id="blAdjustExp">▶ Adjust Expressions (Experimental)</div>
           </div>
 
-          <div class="bl-sec"><span class="dot">4</span><span>ANIMATION</span></div>
+          <!-- 4. ANIMATION -->
+          <div class="bl-sect">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="#e2e2e2"><path d="M8 1.4 14.6 8 8 14.6 1.4 8z"/></svg>
+            <span>4. ANIMATION</span>
+          </div>
           <div class="bl-row" id="blFollow"><span class="lbl">▶ Follow Playhead</span></div>
           <div class="bl-btn primary" id="blApply">Apply Mocap</div>
           <div class="bl-hdr sub">
             <svg width="13" height="13" viewBox="0 0 16 16" fill="#f2f2f2"><rect x="1" y="3" width="14" height="10" rx="1"/><path d="M4 3v10M12 3v10" stroke="#4a4a4a" stroke-width="1.2"/></svg>
             <span style="flex:1">Mocaps</span>
-            <span class="note" id="blMocapCount" style="font-weight:400;color:#e8e8e8">0 applied</span>
+            <span id="blMocapCount" style="font-weight:400;color:#e8e8e8">0 applied</span>
           </div>
-          <div class="bl-list" id="blTray"><div class="bl-empty">No mocap applied yet.</div></div>
-          <div class="bl-btn ghost" id="blSideBySide">↔ Side by Side View</div>
+          <div class="bl-list" id="blTray"><div class="bl-empty">No mocaps applied to this character yet — use Apply Mocap</div></div>
+          <div class="bl-btn ghost" id="blStartFrame">↔ Adjust Mocap's Start Frame</div>
+          <p class="bl-note" id="blLicence">Auto Face Mocap Pro — licensed</p>
         </div>
         <div class="bl-tabstrip" aria-hidden="true">
           <i class="on" title="Auto Face Mocap Pro">

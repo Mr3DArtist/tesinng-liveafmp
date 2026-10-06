@@ -346,8 +346,22 @@ function wire() {
     $('blFoldTuning').hidden = !open;
     $('blCaretTuning').textContent = open ? '▼' : '▶';
   };
-  $('blFoldTuning').hidden = true;               // apply Mocap stays reachable
-  document.querySelector('.bl-sec[data-fold="tuning"]').onclick = () => fold($('blFoldTuning').hidden);
+  // the Video Sources block folds from its own header, exactly like the add-on's dropdown
+  const vidFold = open => {
+    $('blVidBody').hidden = !open;
+    $('blVidDrop').querySelector('.tw').textContent = open ? '▾' : '▸';
+  };
+  $('blVidDrop').onclick = () => vidFold($('blVidBody').hidden);
+  vidFold(true);
+  // 3. FACIAL TUNING opens collapsed, the way a fresh Blender panel would sit - it keeps
+  // 4. ANIMATION (and Apply Mocap) on screen without scrolling
+  fold(false);
+  // these mirror the add-on's own buttons; in the demo they acknowledge a click
+  ['blRegister', 'blStartFrame', 'blConnect', 'blLive', 'blImportVid'].forEach(id => {
+    const el = $(id);
+    if (el) el.onclick = () => { el.style.filter = 'brightness(1.3)'; setTimeout(() => { el.style.filter = ''; }, 220); };
+  });
+  document.querySelector('.bl-sect[data-fold="tuning"]').onclick = () => fold($('blFoldTuning').hidden);
   $('blAdjustExp').onclick = () => {
     const open = $('blAdjustExp').dataset.open === '1';
     $('blAdjustExp').dataset.open = open ? '0' : '1';

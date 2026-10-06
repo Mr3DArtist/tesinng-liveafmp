@@ -77,7 +77,7 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 .bl-fill { position:absolute; left:0; top:0; bottom:0; background:#4772b3; }
 .bl-row.on .bl-fill { background:rgba(255,255,255,.14) }
 .bl-row.flat { background:#3d3d3d }
-.bl-hdr { height:24px; display:flex; align-items:center; gap:6px; border-radius:4px; margin:8px 0 5px;
+.bl-hdr { height:21px; display:flex; align-items:center; gap:6px; border-radius:4px; margin:5px 0 4px;
           background:#545454; padding:0 7px; color:#f2f2f2; font-weight:600 }
 .bl-hdr.sub { background:#4a4a4a; font-weight:500 }
 .bl-hdr .rst { margin-left:auto; color:#c9c9c9 }
@@ -92,7 +92,7 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 .bl-btn.ghost { background:#3d3d3d; color:#bbb }
 .bl-btn[disabled] { opacity:.45 }
 .bl-chips { display:flex; flex-wrap:wrap; gap:3px; margin-bottom:5px }
-.bl-chip { flex:1 1 auto; height:20px; display:flex; align-items:center; justify-content:center;
+.bl-chip { flex:0 1 auto; height:20px; display:flex; align-items:center; justify-content:center;
            background:#545454; border-radius:4px; padding:0 7px; color:#e8e8e8; white-space:nowrap }
 .bl-chip:hover { background:#656565 }
 .bl-chip.on { background:#4772b3; color:#fff }
@@ -173,3 +173,26 @@ body { font-family:Inter,-apple-system,"Segoe UI",sans-serif; }
 .bl-fallback-btn { display:inline-block; background:#4772b3; color:#fff; text-decoration:none;
   font-weight:600; font-size:15px; padding:11px 22px; border-radius:7px; }
 .bl-fallback-btn:hover { background:#5382c6 }
+
+/* ---- widgets added to mirror the add-on's panel (see __init__.py) ---- */
+.bl-drop { height:22px; display:flex; align-items:center; gap:6px; background:#545454;
+  border-radius:4px; padding:0 7px; margin:0 0 4px; color:#f2f2f2; font-weight:600 }
+.bl-drop .lbl { flex:1; display:flex; align-items:center; gap:6px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis }
+.bl-drop .tw { color:#d6d6d6; font-size:10px }
+.bl-sect { height:22px; display:flex; align-items:center; gap:6px; margin:6px 0 4px;
+  color:#e6e6e6; font-weight:700; letter-spacing:.02em }
+.bl-sect .caret { margin-left:auto; color:#c9c9c9; font-size:10px; font-weight:400 }
+.bl-sect[data-fold] { cursor:pointer }
+.bl-sect[data-fold]:hover { color:#fff }
+.bl-btnrow { display:flex; gap:3px; margin:0 0 5px }
+.bl-mini { flex:1 1 0; height:20px; display:flex; align-items:center; justify-content:center;
+  background:#545454; border-radius:4px; color:#eaeaea; font-size:12px; cursor:pointer }
+.bl-mini:hover { background:#656565 }
+.bl-sec-lbl { color:#9d9d9d; font-size:10.5px; margin:4px 0 3px }
+/* Blender's own metrics: 11px text, ~21px rows */
+.bl-frame { font-size:11px }
+.bl-row { height:21px; margin-bottom:2px }
+.bl-btn, .bl-hdr { height:21px; margin-bottom:3px }
+.bl-npanel { width:252px }
+.bl-note { font-size:10.5px; line-height:1.3 }
