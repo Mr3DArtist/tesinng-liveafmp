@@ -221,6 +221,10 @@
 
   // if the module has not started a few seconds in, say why instead of showing a blank frame
   setTimeout(function () {
+    // ONLY on a local file, where modules genuinely cannot load. On a served page a
+    // slow first load (three.js is ~2 MB cold) is not an error, and saying "open it
+    // from a server" to someone already on the live site is simply wrong.
+    if (location.protocol !== 'file:') return;
     if (!window.__afmpBooted) {
       var f = document.getElementById('blFallback');
       if (f) f.hidden = false;
